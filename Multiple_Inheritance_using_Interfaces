@@ -1,0 +1,50 @@
+using System;
+// Interface for anything that can perform an action
+public interface IActionable
+{
+    void Execute();
+}
+
+public interface IProcessor
+{
+    void Execute();
+}
+
+public class TaskEngine : IActionable, IProcessor
+{
+    public void Execute()
+    {
+        Console.WriteLine("TaskEngine: Executing the unified task logic.");
+        Console.WriteLine("TaskEngine: This single method fulfills both the IActionable and IProcessor contracts.");
+    }
+
+    public void Initialize()
+    {
+        Console.WriteLine("TaskEngine initialized.");
+    }
+}
+
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Console.WriteLine("--- Demonstrating Ambiguity Resolution with Interfaces ---");
+        
+        TaskEngine engine = new TaskEngine();
+        engine.Initialize();
+        
+        Console.WriteLine("\n--- Direct Call ---");
+        engine.Execute();
+        
+        Console.WriteLine("\n--- Call via IActionable Interface (Polymorphism) ---");
+        IActionable actionable = engine;
+        actionable.Execute();
+        
+        Console.WriteLine("\n--- Call via IProcessor Interface (Polymorphism) ---");
+        IProcessor processor = engine;
+        processor.Execute();
+        
+        Console.WriteLine("\nResolution: No ambiguity occurs because the single TaskEngine.Execute() method is the one source of code for both contracts.");
+    }
+}
