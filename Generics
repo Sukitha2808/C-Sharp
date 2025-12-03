@@ -1,0 +1,302 @@
+GENERICS IN  C#
+
+Generics allow you to write a class, method, or interface that can work with any data type while maintaining type safety.
+Instead of writing multiple versions of the same code for int, string, double, etc., you write one generic version. The actual type is specified at compile-time.
+
+1. Generic Class:
+A generic class in C# is a class that uses a type parameter (like T) to make it reusable for different data types.
+T is a placeholder for the actual type you’ll specify when creating an object.
+Avoids writing duplicate classes for each data type.
+Provides type safety and flexibility.
+
+Example 1: Box Class
+
+using System;
+
+class Box<T>
+{
+    public T Value;
+
+    public Box(T value)
+    {
+        Value = value;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Box<int> b1 = new Box<int>(10);
+        Box<string> b2 = new Box<string>("Hello");
+
+        Console.WriteLine(b1.Value);
+        Console.WriteLine(b2.Value);
+    }
+}
+
+Example 2: MyGenericClass
+
+using System;
+
+class MyGenericClass<T>
+{
+    public T Data { get; set; }
+
+    public void Print()
+    {
+        Console.WriteLine(Data);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        MyGenericClass<int> obj1 = new MyGenericClass<int>();
+        obj1.Data = 100;
+        obj1.Print();  // Output: 100
+
+        MyGenericClass<string> obj2 = new MyGenericClass<string>();
+        obj2.Data = "Hello Generics!";
+        obj2.Print();  // Output: Hello Generics!
+    }
+}
+
+Output:
+Code
+100
+Hello Generics!
+
+2. Generic Method:
+A generic method uses a type parameter (T) so it can work with different data types without rewriting the logic.
+
+Example: Swap Method
+
+using System;
+
+class Program
+{
+    static void Swap<T>(ref T a, ref T b)
+    {
+        T temp = a;
+        a = b;
+        b = temp;
+    }
+
+    static void Main()
+    {
+        int x = 5, y = 10;
+        Swap(ref x, ref y);
+        Console.WriteLine($"x={x}, y={y}");  // Output: x=10, y=5
+
+        string s1 = "Hello", s2 = "World";
+        Swap(ref s1, ref s2);
+        Console.WriteLine($"{s1}, {s2}");    // Output: World, Hello
+    }
+}
+
+Output:
+
+x=10, y=5
+World, Hello
+
+3. Generic Interface:
+A generic interface defines a contract with a type parameter (T) so it can be implemented for different data types.
+
+Example: Repository
+
+interface IRepository<T>
+{
+    void Add(T item);
+    T Get(int id);
+}
+
+class Repository<T> : IRepository<T>
+{
+    private List<T> items = new List<T>();
+
+    public void Add(T item) => items.Add(item);
+    public T Get(int id) => items[id];
+}
+
+class Program
+{
+    static void Main()
+    {
+        IRepository<string> repo = new Repository<string>();
+        repo.Add("Apple");
+        repo.Add("Banana");
+
+        Console.WriteLine(repo.Get(1)); // Output: Banana
+    }
+}
+
+Output
+Code
+Banana
+
+4. Generic Constraints:
+
+Constraints restrict which types can be used as arguments for a generic type parameter.
+
+Common Constraints:
+class MyClass<T> where T : class { }     // only reference types
+class MyClass<T> where T : struct { }    // only value types
+class MyClass<T> where T : new() { }     // must have parameterless constructor
+class MyClass<T> where T : BaseClass { } // must inherit from BaseClass
+
+Example: Value Type Constraint
+
+using System;
+
+class Container<T> where T : struct
+{
+    public T Value { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Container<int> c1 = new Container<int>();
+        c1.Value = 42;
+        Console.WriteLine(c1.Value);  // Output: 42
+
+        ERROR: string is a reference type
+        Container<string> c2 = new Container<string>();
+    }
+}
+
+Output
+Code
+42
+
+
+5. Generics with Collections:
+
+C# provides built-in generic collections in System.Collections.Generic.
+
+| Collection | Generic Form              | Usage                        |
+|------------|---------------------------|------------------------------|
+| List       | List<T>                   | Ordered items, indexing      |
+| Dictionary | Dictionary<TKey, TValue>  | Key-value pairs, fast lookups|
+| Queue      | Queue<T>                  | FIFO (First-In-First-Out)    |
+| Stack      | Stack<T>                  | LIFO (Last-In-First-Out)     |
+| HashSet    | HashSet<T>                | Unique items, no duplicates  |
+
+Example: List<T>
+
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        List<string> names = new List<string>();
+        names.Add("Amit");
+        names.Add("Neha");
+
+        foreach (var name in names)
+            Console.WriteLine(name);
+    }
+}
+
+Output:
+Code
+Amit
+Neha
+
+6. Generic Delegates:
+
+Built-in generic delegates simplify working with methods.
+
+Func<T, TResult> → method with parameters, returns a value
+
+Action<T> → method with parameters, returns nothing (void)
+
+Predicate<T> → method with one parameter, returns bool
+
+Example:
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        Func<int, int, int> add = (a, b) => a + b;
+        Console.WriteLine(add(5, 3));  // Output: 8
+
+        Action<string> greet = name => Console.WriteLine($"Hello, {name}!");
+        greet("Sukitha");  // Output: Hello, Sukitha!
+
+        Predicate<string> isLong = s => s.Length > 5;
+        Console.WriteLine(isLong("Hello"));     // Output: False
+        Console.WriteLine(isLong("Generics"));  // Output: True
+    }
+}
+
+Output:
+
+8
+Hello, Sukitha!
+False
+True
+
+7. Real-Life Example: Stack Using Generics:
+
+class MyStack<T>
+{
+    private List<T> items = new List<T>();
+
+    public void Push(T item) => items.Add(item);
+
+    public T Pop()
+    {
+        T item = items[items.Count - 1];
+        items.RemoveAt(items.Count - 1);
+        return item;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        MyStack<int> stack = new MyStack<int>();
+        stack.Push(10);
+        stack.Push(20);
+
+        Console.WriteLine(stack.Pop()); // 20
+        Console.WriteLine(stack.Pop()); // 10
+    }
+}
+
+Output:
+20
+10
+
+✅ Generics Summary
+Generics = templates for classes, methods, interfaces, and delegates
+
+T = placeholder for the type you specify when creating an object
+
+Constraints (where T : class, struct, new(), BaseClass) restrict which types can be used
+
+Collections: List<T>, Dictionary<TKey, TValue>, Queue<T>, Stack<T>, HashSet<T> are most used
+
+Delegates: Func<T, TResult>, Action<T>, Predicate<T> simplify working with methods
+
+Real-world use: Generics power reusable data structures, LINQ queries, and type-safe APIs
+
+🌟 Big Picture
+Generics are everywhere in modern C#:
+
+Make code reusable (one class/method works for many types)
+
+Ensure type safety (no accidental type mismatches)
+
+Improve performance (no boxing/unboxing)
+
+Keep code clean and maintainable
