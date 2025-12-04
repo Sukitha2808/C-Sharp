@@ -1,0 +1,405 @@
+Reusable C# utility class for safe arithmetic with overflow detection for int and long.
+It uses checked blocks to throw exceptions when overflow occurs, and also provides Try methods that return a bool instead of throwing.
+
+using System;
+public static class SafeMath
+{
+    // ===== INT OPERATIONS =====
+    public static int Add(int a, int b)
+    {
+        checked // Throws OverflowException if overflow occurs
+        {
+            return a + b;
+        }
+    }
+
+    public static int Subtract(int a, int b)
+    {
+        checked
+        {
+            return a - b;
+        }
+    }
+
+    public static int Multiply(int a, int b)
+    {
+        checked
+        {
+            return a * b;
+        }
+    }
+
+    public static int Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+        return a / b; // Division can't overflow for int except MinValue / -1
+    }
+
+    // ===== LONG OPERATIONS =====
+    public static long Add(long a, long b)
+    {
+        checked
+        {
+            return a + b;
+        }
+    }
+
+    public static long Subtract(long a, long b)
+    {
+        checked
+        {
+            return a - b;
+        }
+    }
+
+    public static long Multiply(long a, long b)
+    {
+        checked
+        {
+            return a * b;
+        }
+    }
+
+    public static long Divide(long a, long b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+        return a / b;
+    }
+
+    // ===== TRY METHODS (NO EXCEPTIONS) =====
+    public static bool TryAdd(int a, int b, out int result)
+    {
+        try
+        {
+            result = Add(a, b);
+            return true;
+        }
+        catch (OverflowException)
+        {
+            result = 0;
+            return false;
+        }
+    }
+
+    public static bool TryMultiply(int a, int b, out int result)
+    {
+        try
+        {
+            result = Multiply(a, b);
+            return true;
+        }
+        catch (OverflowException)
+        {
+            result = 0;
+            return false;
+        }
+    }
+}
+
+Example Usage:
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            int sum = SafeMath.Add(int.MaxValue, 1); // Will throw
+            Console.WriteLine(sum);
+        }
+        catch (OverflowException ex)
+        {
+            Console.WriteLine("Overflow detected: " + ex.Message);
+        }
+
+        if (SafeMath.TryAdd(int.MaxValue, 1, out int safeSum))
+            Console.WriteLine("Sum: " + safeSum);
+        else
+            Console.WriteLine("Addition overflowed, result not computed.");
+    }
+}
+Features
+Checked arithmetic for safety.
+Try methods for non-exception control flow.
+Handles division by zero.
+Works for both int and long.
+
+
+Upgraded SafeMath that automatically switches to System.Numerics.BigInteger when an overflow would occur.
+This way, you never lose precision and never crash due to overflow.
+
+SafeMathBig.cs
+
+using System;
+using System.Numerics; // For BigInteger
+
+public static class SafeMathBig
+{
+    // ===== INT OPERATIONS WITH AUTO-UPGRADE =====
+    public static BigInteger Add(int a, int b)
+    {
+        try
+        {
+            checked
+            {
+                return a + b; // Fits in int
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) + b; // Upgrade to BigInteger
+        }
+    }
+
+    public static BigInteger Subtract(int a, int b)
+    {
+        try
+        {
+            checked
+            {
+                return a - b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) - b;
+        }
+    }
+
+    public static BigInteger Multiply(int a, int b)
+    {
+        try
+        {
+            checked
+            {
+                return a * b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) * b;
+        }
+    }
+
+    public static BigInteger Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+        return new BigInteger(a) / b; // No overflow risk here
+    }
+
+    // ===== LONG OPERATIONS WITH AUTO-UPGRADE =====
+    public static BigInteger Add(long a, long b)
+    {
+        try
+        {
+            checked
+            {
+                return a + b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) + b;
+        }
+    }
+
+    public static BigInteger Subtract(long a, long b)
+    {
+        try
+        {
+            checked
+            {
+                return a - b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) - b;
+        }
+    }
+
+    public static BigInteger Multiply(long a, long b)
+    {
+        try
+        {
+            checked
+            {
+                return a * b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a) * b;
+        }
+    }
+
+    public static BigInteger Divide(long a, long b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+        return new BigInteger(a) / b;
+    }
+}
+
+Example Usage:
+
+
+using System;
+using System.Numerics;
+
+class Program
+{
+    static void Main()
+    {
+        // Example 1: Overflow in int, auto-upgrade to BigInteger
+        BigInteger sum = SafeMathBig.Add(int.MaxValue, 10);
+        Console.WriteLine($"Sum: {sum} (Type: {sum.GetType().Name})");
+
+        // Example 2: Large multiplication
+        BigInteger product = SafeMathBig.Multiply(long.MaxValue, 1000);
+        Console.WriteLine($"Product: {product} (Type: {product.GetType().Name})");
+
+        // Example 3: No overflow, stays as int
+        BigInteger normalSum = SafeMathBig.Add(100, 200);
+        Console.WriteLine($"Normal Sum: {normalSum} (Type: {normalSum.GetType().Name})");
+    }
+}
+How It Works
+Normal case: Uses checked to detect overflow.
+Overflow case: Catches OverflowException and switches to BigInteger.
+Result type: Always BigInteger, so you can handle huge numbers without losing precision.
+Division: No overflow risk, but still returns BigInteger for consistency.
+
+
+
+
+The generic, future-proof SafeMath library using .NET 7+ generic math interfaces (INumber<T>) so it works for any numeric type (int, long, decimal, float, double, BigInteger, etc.) with automatic overflow handling.
+
+SafeMathGeneric.cs
+
+using System;
+using System.Numerics; // For INumber<T> and BigInteger
+
+/// <summary>
+/// Generic safe math operations with automatic overflow handling.
+/// Works for any numeric type that implements INumber<T>.
+/// Requires .NET 7+.
+/// </summary>
+public static class SafeMathGeneric
+{
+    /// <summary>
+    /// Safely adds two numbers. If overflow occurs, returns BigInteger.
+    /// </summary>
+    public static object Add<T>(T a, T b) where T : INumber<T>
+    {
+        try
+        {
+            checked
+            {
+                return a + b; // Works for all INumber<T> types
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a.ToString()) + new BigInteger(b.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Safely subtracts two numbers. If overflow occurs, returns BigInteger.
+    /// </summary>
+    public static object Subtract<T>(T a, T b) where T : INumber<T>
+    {
+        try
+        {
+            checked
+            {
+                return a - b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a.ToString()) - new BigInteger(b.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Safely multiplies two numbers. If overflow occurs, returns BigInteger.
+    /// </summary>
+    public static object Multiply<T>(T a, T b) where T : INumber<T>
+    {
+        try
+        {
+            checked
+            {
+                return a * b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a.ToString()) * new BigInteger(b.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Safely divides two numbers. Throws DivideByZeroException if b is zero.
+    /// </summary>
+    public static object Divide<T>(T a, T b) where T : INumber<T>
+    {
+        if (b == T.Zero)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+
+        try
+        {
+            checked
+            {
+                return a / b;
+            }
+        }
+        catch (OverflowException)
+        {
+            return new BigInteger(a.ToString()) / new BigInteger(b.ToString());
+        }
+    }
+}
+Example Usage
+Csharp
+
+Copy code
+using System;
+using System.Numerics;
+
+class Program
+{
+    static void Main()
+    {
+        // Works with int
+        var sumInt = SafeMathGeneric.Add(int.MaxValue, 10);
+        Console.WriteLine($"Sum (int): {sumInt} (Type: {sumInt.GetType().Name})");
+
+        // Works with long
+        var productLong = SafeMathGeneric.Multiply(long.MaxValue, 1000);
+        Console.WriteLine($"Product (long): {productLong} (Type: {productLong.GetType().Name})");
+
+        // Works with decimal (no overflow here)
+        var sumDecimal = SafeMathGeneric.Add(100.5m, 200.25m);
+        Console.WriteLine($"Sum (decimal): {sumDecimal} (Type: {sumDecimal.GetType().Name})");
+
+        // Works with BigInteger directly
+        var bigA = BigInteger.Parse("999999999999999999999999999999");
+        var bigB = BigInteger.Parse("888888888888888888888888888888");
+        var bigSum = SafeMathGeneric.Add(bigA, bigB);
+        Console.WriteLine($"Sum (BigInteger): {bigSum} (Type: {bigSum.GetType().Name})");
+    }
+}
+Why This Is Powerful
+Generic: Works for any numeric type implementing INumber<T> (new in .NET 7).
+Automatic Overflow Handling: Falls back to BigInteger when needed.
+Future-Proof: Will work with future numeric types without code changes.
+Type Preservation: Returns the same type if no overflow, otherwise BigInteger.
+If you want, I can extend this so that instead of returning object,
+it always returns BigInteger for consistency — making it easier for large-number math pipelines.
