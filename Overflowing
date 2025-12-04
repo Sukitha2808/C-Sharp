@@ -1,0 +1,93 @@
+In C#, overflowing happens when an arithmetic operation produces a value outside the range of the target numeric type.
+For example, an int in C# is a 32-bit signed integer with a range of -2,147,483,648 to 2,147,483,647.
+If you exceed this range, the value wraps around unless you explicitly enable overflow checking.
+
+1. Default Behavior (Unchecked Context)
+By default, C# does not throw an exception for overflow in most cases — it silently wraps around.
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        int max = int.MaxValue;
+        int result = max + 1; // Wraps around to int.MinValue
+        Console.WriteLine(result); // Output: -2147483648
+    }
+}
+
+2. Checked Context (Throw Exception on Overflow)
+You can use the checked keyword to make C# throw an OverflowException when overflow occurs.
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            int max = int.MaxValue;
+            int result = checked(max + 1); // Throws OverflowException
+            Console.WriteLine(result);
+        }
+        catch (OverflowException ex)
+        {
+            Console.WriteLine("Overflow detected: " + ex.Message);
+        }
+    }
+}
+
+3. Unchecked Context (Ignore Overflow)
+You can explicitly ignore overflow using unchecked (default in most builds).
+
+using System;
+class Program
+{
+    static void Main()
+    {
+        int max = int.MaxValue;
+        int result = unchecked(max + 1); // Wraps around
+        Console.WriteLine(result); // Output: -2147483648
+    }
+}
+
+4. Enabling Overflow Checking Globally
+You can enable overflow checking for the whole project:
+
+In Visual Studio:
+Project Properties → Build → Advanced → Check for arithmetic overflow/underflow
+Or via compiler option:
+
+
+csc /checked+ Program.cs
+
+5. Detecting Overflow Without Exceptions
+If you want to avoid exceptions but still detect overflow, use System.Numerics.BigInteger or Math methods with pre-checks:
+
+
+using System;
+
+class Program
+{
+    static bool WillAdditionOverflow(int a, int b)
+    {
+        if (b > 0 && a > int.MaxValue - b) return true;
+        if (b < 0 && a < int.MinValue - b) return true;
+        return false;
+    }
+
+    static void Main()
+    {
+        int a = int.MaxValue, b = 1;
+        if (WillAdditionOverflow(a, b))
+            Console.WriteLine("Addition will overflow!");
+        else
+            Console.WriteLine(a + b);
+    }
+}
+✅ Best Practice:
+
+Use checked when you want safety and correctness over performance.
+Use unchecked when you intentionally allow wrap-around (e.g., low-level bit operations).
+For very large numbers, use BigInteger.
+
