@@ -1,0 +1,89 @@
+using System;
+
+/// <summary>
+/// Utility class for safe arithmetic operations with overflow detection.
+/// </summary>
+public static class SafeMath
+{
+    public static int Add(int a, int b)
+    {
+        return checked(a + b);
+    }
+
+    public static int Subtract(int a, int b)
+    {
+        return checked(a - b);
+    }
+
+    public static int Multiply(int a, int b)
+    {
+        return checked(a * b);
+    }
+
+    public static int Divide(int a, int b)
+    {
+        if (b == 0)
+            throw new DivideByZeroException("Division by zero is not allowed.");
+
+        return checked(a / b);
+    }
+
+    /// <summary>
+    /// Try Add without exceptions (using long for checking)
+    /// </summary>
+    public static bool TryAdd(int a, int b, out int result)
+    {
+        long temp = (long)a + b;
+        if (temp > int.MaxValue || temp < int.MinValue)
+        {
+            result = 0;
+            return false;
+        }
+        result = (int)temp;
+        return true;
+    }
+
+    /// <summary>
+    /// Try Multiply without exceptions (using long for checking)
+    /// </summary>
+    public static bool TryMultiply(int a, int b, out int result)
+    {
+        long temp = (long)a * b;
+        if (temp > int.MaxValue || temp < int.MinValue)
+        {
+            result = 0;
+            return false;
+        }
+        result = (int)temp;
+        return true;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        try
+        {
+            // Checked overflow example
+            int sum = SafeMath.Add(int.MaxValue, 1); 
+            Console.WriteLine(sum);
+        }
+        catch (OverflowException ex)
+        {
+            Console.WriteLine("Overflow detected: " + ex.Message);
+        }
+
+        // TryAdd (no exception)
+        if (SafeMath.TryAdd(int.MaxValue, 1, out int safeSum))
+            Console.WriteLine("Sum: " + safeSum);
+        else
+            Console.WriteLine("Addition would overflow!");
+
+        // TryMultiply (no exception)
+        if (SafeMath.TryMultiply(50000, 50000, out int safeProduct))
+            Console.WriteLine("Product: " + safeProduct);
+        else
+            Console.WriteLine("Multiplication would overflow!");
+    }
+}
